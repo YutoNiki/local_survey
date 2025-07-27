@@ -1,6 +1,20 @@
 # Local Survey App
 
+![Local Survey Banner](opma_banner.png)
+
 This is a simple survey application for Android tablets, designed to collect user feedback offline. It's ideal for gathering satisfaction ratings at events, exhibitions, or any location without internet access.
+
+## Language Support
+
+This application supports both Japanese and English languages, adapting to the device's language settings.
+
+![Local Survey Banner](opma_banner.png)
+
+This is a simple survey application for Android tablets, designed to collect user feedback offline. It's ideal for gathering satisfaction ratings at events, exhibitions, or any location without internet access.
+
+## Language Support
+
+This application supports both Japanese and English languages, adapting to the device's language settings.
 
 ## Features
 
