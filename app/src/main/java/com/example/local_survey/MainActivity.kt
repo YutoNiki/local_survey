@@ -7,6 +7,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,6 +21,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,6 +38,8 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.foundation.Image
+
 
 // --- Navigation Routes ---
 object AppRoutes {
@@ -44,6 +49,13 @@ object AppRoutes {
 }
 
 class MainActivity : ComponentActivity() {
+
+    override fun attachBaseContext(newBase: Context) {
+        val sharedPref = newBase.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        val language = sharedPref.getString("app_language", "ja") ?: "ja"
+        super.attachBaseContext(ContextUtils.updateLocale(newBase, language))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -105,16 +117,16 @@ fun deleteCsv(context: Context): Boolean {
         try {
             file.delete()
             Log.d("FileDelete", "Successfully deleted: ${file.absolutePath}")
-            Toast.makeText(context, "Logs deleted", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.delete_logs), Toast.LENGTH_SHORT).show()
             true
         } catch (e: Exception) {
             Log.e("FileDelete", "Error deleting file", e)
-            Toast.makeText(context, "Error deleting logs", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.delete_logs), Toast.LENGTH_SHORT).show()
             false
         }
     } else {
         Log.d("FileDelete", "Log file not found, nothing to delete.")
-        Toast.makeText(context, "No logs to delete", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.no_logs_found), Toast.LENGTH_SHORT).show()
         false
     }
 }
@@ -123,7 +135,7 @@ fun shareCsv(context: Context) {
     val file = File(context.filesDir, LOG_FILE_NAME)
     if (!file.exists()) {
         Log.e("FileShare", "Log file not found!")
-        Toast.makeText(context, "No logs to share", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.no_logs_found), Toast.LENGTH_SHORT).show()
         return
     }
 
@@ -138,7 +150,7 @@ fun shareCsv(context: Context) {
         putExtra(Intent.EXTRA_STREAM, uri)
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
-    context.startActivity(Intent.createChooser(intent, "Share Log File"))
+    context.startActivity(Intent.createChooser(intent, context.getString(R.string.share_logs)))
 }
 
 
@@ -148,19 +160,31 @@ fun shareCsv(context: Context) {
 @Composable
 fun SurveyScreen(navController: NavController) {
     var buttonsEnabled by remember { mutableStateOf(true) }
-    var message by remember { mutableStateOf("How was your experience?") }
+    var message by remember { mutableStateOf(R.string.how_was_experience) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val activity = (LocalContext.current as? ComponentActivity)
+
+    var expanded by remember { mutableStateOf(false) }
+    val languages = listOf("en", "ja")
+    val languageNames = mapOf("en" to stringResource(R.string.english), "ja" to stringResource(R.string.japanese))
+    val currentLanguage = remember { mutableStateOf(context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE).getString("app_language", "ja") ?: "ja") }
+    
+    // Pre-fetch rating strings
+    val verySatisfiedText = stringResource(R.string.very_satisfied)
+    val satisfiedText = stringResource(R.string.satisfied)
+    val unsatisfiedText = stringResource(R.string.unsatisfied)
+    val veryUnsatisfiedText = stringResource(R.string.very_unsatisfied)
 
     val onButtonClick: (String) -> Unit = { rating ->
         if (buttonsEnabled) {
             writeToCsv(context, rating)
             buttonsEnabled = false
-            message = "Thank you for your feedback!"
+            message = R.string.thank_you_feedback
             scope.launch {
                 delay(5000)
                 buttonsEnabled = true
-                message = "How was your experience?"
+                message = R.string.how_was_experience
             }
         }
     }
@@ -168,10 +192,46 @@ fun SurveyScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Local Survey") },
+                title = { Text(stringResource(R.string.app_name)) },
                 actions = {
+                    // Language Dropdown
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = { expanded = !expanded },
+                        modifier = Modifier.wrapContentSize(Alignment.TopEnd)
+                    ) {
+                        TextField(
+                            value = languageNames[currentLanguage.value] ?: "",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text(stringResource(R.string.language)) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                            modifier = Modifier.menuAnchor()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            languages.forEach { lang ->
+                                DropdownMenuItem(
+                                    text = { Text(languageNames[lang] ?: "") },
+                                    onClick = {
+                                        currentLanguage.value = lang
+                                        val sharedPref = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+                                        with(sharedPref.edit()) {
+                                            putString("app_language", lang)
+                                            apply()
+                                        }
+                                        activity?.recreate() // Recreate activity to apply language change
+                                        expanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
                     IconButton(onClick = { navController.navigate(AppRoutes.PASSWORD_PROTECTED_LOGS) }) {
-                        Icon(Icons.Filled.Menu, contentDescription = "View Logs")
+                        Icon(Icons.Filled.Menu, contentDescription = stringResource(R.string.view_logs))
                     }
                 }
             )
@@ -186,7 +246,7 @@ fun SurveyScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = message,
+                text = stringResource(message),
                 fontSize = 32.sp,
                 modifier = Modifier.padding(bottom = 64.dp)
             )
@@ -195,11 +255,21 @@ fun SurveyScreen(navController: NavController) {
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                SurveyButton(text = "😊", rating = "Very Satisfied", enabled = buttonsEnabled, onClick = onButtonClick)
-                SurveyButton(text = "🙂", rating = "Satisfied", enabled = buttonsEnabled, onClick = onButtonClick)
-                SurveyButton(text = "😐", rating = "Unsatisfied", enabled = buttonsEnabled, onClick = onButtonClick)
-                SurveyButton(text = "😠", rating = "Very Unsatisfied", enabled = buttonsEnabled, onClick = onButtonClick)
+                SurveyButton(text = "😊", rating = verySatisfiedText, enabled = buttonsEnabled, onClick = onButtonClick)
+                SurveyButton(text = "🙂", rating = satisfiedText, enabled = buttonsEnabled, onClick = onButtonClick)
+                SurveyButton(text = "😐", rating = unsatisfiedText, enabled = buttonsEnabled, onClick = onButtonClick)
+                SurveyButton(text = "😠", rating = veryUnsatisfiedText, enabled = buttonsEnabled, onClick = onButtonClick)
             }
+            // Banner Image
+            Spacer(modifier = Modifier.height(32.dp)) // Adjust spacing as needed
+            Image(
+                painter = painterResource(id = R.drawable.opma_banner),
+                contentDescription = "OPMA Banner",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp) // Adjust height as needed
+                    .align(Alignment.CenterHorizontally)
+            )
         }
     }
 }
@@ -210,14 +280,16 @@ fun PasswordScreen(navController: NavController) {
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current
     val correctPassword = "1234" // 仮のパスワード。実際には安全な方法で管理してください。
+    val incorrectPasswordMessage = stringResource(R.string.incorrect_password)
+    val submitText = stringResource(R.string.submit)
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Enter Password") },
+                title = { Text(stringResource(R.string.enter_password)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.view_logs))
                     }
                 }
             )
@@ -234,7 +306,7 @@ fun PasswordScreen(navController: NavController) {
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Password") },
+                label = { Text(stringResource(R.string.password)) },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -244,12 +316,12 @@ fun PasswordScreen(navController: NavController) {
                     if (password == correctPassword) {
                         navController.navigate(AppRoutes.LOGS)
                     } else {
-                        Toast.makeText(context, "Incorrect Password", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, incorrectPasswordMessage, Toast.LENGTH_SHORT).show()
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Submit")
+                Text(submitText)
             }
         }
     }
@@ -261,22 +333,27 @@ fun LogScreen(navController: NavController) {
     val context = LocalContext.current
     var logEntries by remember { mutableStateOf(readCsv(context)) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    
+    // Pre-fetch dialog strings
+    val deleteLogsConfirmationText = stringResource(R.string.delete_logs_confirmation)
+    val yesText = stringResource(R.string.yes)
+    val noText = stringResource(R.string.no)
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Survey Logs") },
+                title = { Text(stringResource(R.string.survey_logs)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.view_logs))
                     }
                 },
                 actions = {
                     IconButton(onClick = { shareCsv(context) }) {
-                        Icon(Icons.Filled.Share, contentDescription = "Share Logs")
+                        Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.share_logs))
                     }
                     IconButton(onClick = { showDeleteDialog = true }) {
-                        Icon(Icons.Filled.Delete, contentDescription = "Delete Logs")
+                        Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.delete_logs))
                     }
                 }
             )
@@ -289,7 +366,7 @@ fun LogScreen(navController: NavController) {
                     .padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No logs found.")
+                Text(stringResource(R.string.no_logs_found))
             }
         } else {
             LazyColumn(
@@ -309,8 +386,8 @@ fun LogScreen(navController: NavController) {
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete Logs") },
-            text = { Text("Are you sure you want to delete all survey logs? This action cannot be undone.") },
+            title = { Text(stringResource(R.string.delete_logs)) },
+            text = { Text(deleteLogsConfirmationText) },
             confirmButton = {
                 Button(onClick = {
                     if (deleteCsv(context)) {
@@ -318,12 +395,12 @@ fun LogScreen(navController: NavController) {
                     }
                     showDeleteDialog = false
                 }) {
-                    Text("Yes")
+                    Text(yesText)
                 }
             },
             dismissButton = {
                 Button(onClick = { showDeleteDialog = false }) {
-                    Text("No")
+                    Text(noText)
                 }
             }
         )
@@ -335,15 +412,25 @@ fun LogScreen(navController: NavController) {
 
 @Composable
 fun SurveyButton(text: String, rating: String, enabled: Boolean, onClick: (String) -> Unit) {
-    Button(
+    Surface(
         onClick = { onClick(rating) },
         enabled = enabled,
+        shape = MaterialTheme.shapes.small,
+        color = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest,
+        contentColor = if (enabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
         modifier = Modifier
             .width(150.dp)
             .height(120.dp)
             .padding(8.dp)
     ) {
-        Text(text = text, fontSize = 56.sp)
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(text = text, fontSize = 64.sp) // フォントサイズを大きく
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = rating, fontSize = 12.sp)
+        }
     }
 }
 
