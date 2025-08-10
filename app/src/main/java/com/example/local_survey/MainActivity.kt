@@ -38,6 +38,7 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
 
 
@@ -163,7 +164,7 @@ fun SurveyScreen(navController: NavController) {
     var message by remember { mutableStateOf(R.string.how_was_experience) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val activity = (LocalContext.current as? ComponentActivity)
+    val activity = LocalActivity.current
 
     var expanded by remember { mutableStateOf(false) }
     val languages = listOf("en", "ja")
