@@ -2,70 +2,77 @@
 
 ![Local Survey Banner](opma_banner.png)
 
-This is a simple survey application for Android tablets, designed to collect user feedback offline. It's ideal for gathering satisfaction ratings at events, exhibitions, or any location without internet access.
+このアプリは、イベントや展示会などオフライン環境で利用できる、タブレット向けのシンプルな満足度アンケートアプリです。
 
-## Language Support
+## 主な特徴
 
-This application supports both Japanese and English languages, adapting to the device's language settings.
+- **4段階の満足度評価**：
+    - 😊 大変満足
+    - 🙂 満足
+    - 😐 不満
+    - 😠 大変不満
+- **ワンタップで記録**：ボタンを押すだけで即時に記録。
+- **クールダウン機能**：連打や誤操作防止のため、5秒間ボタンが無効化されます。
+- **多言語対応**：日本語・英語の両方に対応。UIは端末の言語設定に自動で切り替わります。
+- **データは常に日本語で記録**：どちらの言語モードでも、ログ（CSV）は日本語で統一されます。
+- **オフライン動作**：インターネット接続不要。
+- **ログ閲覧・削除・共有**：アプリ内で記録一覧の閲覧・削除・CSVファイルの共有が可能。
+- **グラフ表示**：
+    - 直近1週間の日別回答数を棒グラフで可視化
+    - 満足度分布を円グラフで表示
+- **バナー画像表示**：画面下部にカスタムバナーを表示可能
 
-![Local Survey Banner](opma_banner.png)
+## 画面イメージ
 
-This is a simple survey application for Android tablets, designed to collect user feedback offline. It's ideal for gathering satisfaction ratings at events, exhibitions, or any location without internet access.
+- **アンケート画面**：4つの絵文字ボタン＋バナー画像
+- **ログ画面**：
+    - 直近1週間の棒グラフ
+    - 満足度分布の円グラフ
+    - 生ログ一覧
+    - ログの共有・削除ボタン
 
-## Language Support
+## 使い方
 
-This application supports both Japanese and English languages, adapting to the device's language settings.
+1. アプリを起動し、絵文字ボタンをタップして満足度を記録。
+2. 「ありがとう」メッセージが表示され、5秒後に再度入力可能。
+3. ログ閲覧は右上のメニュー（三本線）からパスワード入力でアクセス。
+4. ログ画面で棒グラフ・円グラフ・生ログを確認。
+5. 右上の共有ボタンでCSVを他アプリへ送信可能。
 
-## Features
+## データ仕様
 
-- **Four-Level Satisfaction Rating:** Users can record their satisfaction level by tapping one of four emoji buttons:
-    - 😊 Very Satisfied
-    - 🙂 Satisfied
-    - 😐 Unsatisfied
-    - 😠 Very Unsatisfied
-- **Cooldown Mechanism:** To prevent accidental or fraudulent multiple clicks, there is a 5-second cooldown period after a button is pressed.
-- **Timestamped Data Logging:** Each rating is saved with a precise timestamp.
-- **Offline Operation:** The app works completely offline. No internet connection is required.
-- **In-App Log Viewer:** View all recorded survey logs directly within the app.
-- **Data Sharing/Export:** Easily share the `survey_log.csv` file with other applications (e.g., email, cloud storage) for further analysis.
+- **保存先**：アプリ内ストレージ `survey_log.csv`
+- **CSVフォーマット**：
+  `yyyy-MM-dd HH:mm:ss,大変満足` のように、日時と評価（日本語）で記録
+- **例**：
+  `2025-08-18 10:30:00,大変満足`
 
-## How to Use
+## ビルド方法
 
-1.  Launch the app on your Android tablet.
-2.  Tap one of the four emoji buttons to record your feedback.
-3.  A "Thank you" message will appear, and the buttons will be disabled for 5 seconds.
-4.  After 5 seconds, the app is ready to receive the next feedback.
-5.  **To view logs:** Tap the menu icon (three lines) in the top right corner of the survey screen.
-6.  **To share logs:** On the log viewer screen, tap the share icon (arrow) in the top right corner and choose your preferred sharing method.
-
-## Data Storage
-
-- The survey data is stored in a CSV file named `survey_log.csv`.
-- **File Location:** The file is located in the app's internal storage directory. You can typically access it using a file manager app (requires Android Studio's Device File Explorer for direct access on Android 11+):
-  `/Android/data/com.example.local_survey/files/survey_log.csv`
-- **CSV Format:** The data is stored in the following format:
-  `timestamp,rating`
-  (e.g., `2025-07-25 10:30:00,Very Satisfied`)
-
-## Building from Source
-
-### Prerequisites
-
+### 必要環境
 - Android Studio
 - JDK 17
 
-### Build Instructions
-
-1.  Clone the repository:
+### 手順
+1. このリポジトリをクローン
     ```bash
     git clone <repository-url>
     ```
-2.  Open the project in Android Studio.
-3.  Connect an Android device or start an emulator.
-4.  Build and run the app.
+2. Android Studioで開く
+3. 実機またはエミュレータを接続
+4. ビルド＆実行
 
-Alternatively, you can build from the command line using Gradle:
-
+コマンドラインからビルドする場合：
 ```bash
 ./gradlew installDebug
 ```
+
+## ライセンス
+
+MIT License
+
+---
+
+### English Summary
+
+This is a simple offline survey app for Android tablets. It supports both Japanese and English UI, but all logs are always recorded in Japanese for consistency. The app features a 4-level satisfaction rating, cooldown to prevent spamming, in-app log viewer, CSV export, and visualizes recent responses with bar and pie charts.
