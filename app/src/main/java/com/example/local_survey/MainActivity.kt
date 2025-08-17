@@ -183,7 +183,7 @@ fun SurveyScreen(navController: NavController) {
             buttonsEnabled = false
             message = R.string.thank_you_feedback
             scope.launch {
-                delay(5000)
+                delay(3000)
                 buttonsEnabled = true
                 message = R.string.how_was_experience
             }
@@ -428,7 +428,7 @@ fun SurveyButton(text: String, rating: String, enabled: Boolean, onClick: (Strin
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(text = text, fontSize = 64.sp) // フォントサイズを大きく
+            Text(text = text, fontSize = 60.sp) // フォントサイズを大きく
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = rating, fontSize = 12.sp)
         }
