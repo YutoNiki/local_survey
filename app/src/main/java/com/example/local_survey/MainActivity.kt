@@ -32,6 +32,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.local_survey.ui.screens.LogScreen
 import com.example.local_survey.ui.theme.Local_surveyTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -40,6 +41,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
+import android.content.res.Configuration
 
 
 // --- Navigation Routes ---
@@ -275,6 +277,8 @@ fun SurveyScreen(navController: NavController) {
     }
 }
 
+    
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PasswordScreen(navController: NavController) {
@@ -328,87 +332,6 @@ fun PasswordScreen(navController: NavController) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun LogScreen(navController: NavController) {
-    val context = LocalContext.current
-    var logEntries by remember { mutableStateOf(readCsv(context)) }
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    
-    // Pre-fetch dialog strings
-    val deleteLogsConfirmationText = stringResource(R.string.delete_logs_confirmation)
-    val yesText = stringResource(R.string.yes)
-    val noText = stringResource(R.string.no)
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.survey_logs)) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.view_logs))
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { shareCsv(context) }) {
-                        Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.share_logs))
-                    }
-                    IconButton(onClick = { showDeleteDialog = true }) {
-                        Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.delete_logs))
-                    }
-                }
-            )
-        }
-    ) { innerPadding ->
-        if (logEntries.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(stringResource(R.string.no_logs_found))
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(16.dp)
-            ) {
-                items(logEntries) { entry ->
-                    Text(entry, modifier = Modifier.padding(vertical = 4.dp))
-                    HorizontalDivider()
-                }
-            }
-        }
-    }
-
-    if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text(stringResource(R.string.delete_logs)) },
-            text = { Text(deleteLogsConfirmationText) },
-            confirmButton = {
-                Button(onClick = {
-                    if (deleteCsv(context)) {
-                        logEntries = emptyList() // Update UI immediately
-                    }
-                    showDeleteDialog = false
-                }) {
-                    Text(yesText)
-                }
-            },
-            dismissButton = {
-                Button(onClick = { showDeleteDialog = false }) {
-                    Text(noText)
-                }
-            }
-        )
-    }
-}
-
-
 // --- Reusable Components & Previews ---
 
 @Composable
@@ -451,14 +374,5 @@ fun PasswordScreenPreview() {
     Local_surveyTheme {
         val navController = rememberNavController()
         PasswordScreen(navController)
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun LogScreenPreview() {
-    Local_surveyTheme {
-        val navController = rememberNavController()
-        LogScreen(navController)
     }
 }
