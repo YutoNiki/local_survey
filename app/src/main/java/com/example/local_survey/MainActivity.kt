@@ -280,7 +280,7 @@ fun SurveyScreen(navController: NavController) {
 fun PasswordScreen(navController: NavController) {
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current
-    val correctPassword = "1234" // 仮のパスワード。実際には安全な方法で管理してください。
+    val correctPassword = "1988" // 仮のパスワード。実際には安全な方法で管理してください。
     val incorrectPasswordMessage = stringResource(R.string.incorrect_password)
     val submitText = stringResource(R.string.submit)
 
