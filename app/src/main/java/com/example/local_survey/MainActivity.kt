@@ -93,10 +93,22 @@ fun AppNavigation() {
 // --- File I/O ---
 const val LOG_FILE_NAME = "survey_log.csv"
 
+// Map rating to standardized Japanese format
+fun standardizeRating(rating: String): String {
+    return when (rating.lowercase().trim()) {
+        "very satisfied", "大変満足" -> "大変満足"
+        "satisfied", "満足" -> "満足"
+        "unsatisfied", "不満" -> "不満"
+        "very unsatisfied", "大変不満" -> "大変不満"
+        else -> rating // fallback to original if no match
+    }
+}
+
 fun writeToCsv(context: Context, rating: String) {
     val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
     val file = File(context.filesDir, LOG_FILE_NAME)
-    val line = "$timestamp,$rating\n"
+    val standardizedRating = standardizeRating(rating)
+    val line = "$timestamp,$standardizedRating\n"
     try {
         file.appendText(line)
         Log.d("FileWrite", "Successfully wrote: $line")

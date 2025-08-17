@@ -21,4 +21,7 @@
     <string name="language">言語</string>
     <string name="english">英語</string>
     <string name="japanese">日本語</string>
+    <string name="weekly_responses">週間回答数（過去7日間）</string>
+    <string name="no_data_available">データがありません</string>
+    <string name="total_responses_week">今週の合計回答数: %1$d</string>
 </resources>

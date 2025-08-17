@@ -5,6 +5,8 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
@@ -23,6 +25,7 @@ import com.example.local_survey.readCsv
 import com.example.local_survey.shareCsv
 import com.example.local_survey.ui.components.SatisfactionPieChart
 import com.example.local_survey.ui.components.calculateSatisfactionData
+import com.example.local_survey.ui.components.WeeklyResponseBarChart
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,25 +70,46 @@ fun LogScreen(navController: NavController) {
             }
         } else {
             val satisfactionData = calculateSatisfactionData(context, logEntries)
+            
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
+                    .verticalScroll(rememberScrollState())
             ) {
+                // Weekly response bar chart
+                WeeklyResponseBarChart(
+                    logEntries = logEntries,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                
+                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+                
+                // Satisfaction pie chart
                 SatisfactionPieChart(data = satisfactionData)
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f) // Take remaining space
-                        .padding(horizontal = 16.dp)
+                
+                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+                
+                // Raw log entries
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
-                items(logEntries) { entry ->
-                    Text(entry, modifier = Modifier.padding(vertical = 4.dp))
-                    HorizontalDivider()
+                    Text(
+                        text = stringResource(R.string.survey_logs),
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    
+                    logEntries.forEach { entry ->
+                        Text(
+                            text = entry,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        )
+                        HorizontalDivider()
+                    }
                 }
             }
         }
-    }
     }
 
     if (showDeleteDialog) {
