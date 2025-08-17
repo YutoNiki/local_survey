@@ -38,6 +38,7 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
 
 
@@ -163,7 +164,7 @@ fun SurveyScreen(navController: NavController) {
     var message by remember { mutableStateOf(R.string.how_was_experience) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val activity = (LocalContext.current as? ComponentActivity)
+    val activity = LocalActivity.current
 
     var expanded by remember { mutableStateOf(false) }
     val languages = listOf("en", "ja")
@@ -182,7 +183,7 @@ fun SurveyScreen(navController: NavController) {
             buttonsEnabled = false
             message = R.string.thank_you_feedback
             scope.launch {
-                delay(5000)
+                delay(3000)
                 buttonsEnabled = true
                 message = R.string.how_was_experience
             }
@@ -427,7 +428,7 @@ fun SurveyButton(text: String, rating: String, enabled: Boolean, onClick: (Strin
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(text = text, fontSize = 64.sp) // フォントサイズを大きく
+            Text(text = text, fontSize = 60.sp) // フォントサイズを大きく
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = rating, fontSize = 12.sp)
         }
