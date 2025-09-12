@@ -4,6 +4,7 @@
     <string name="thank_you_feedback">Thank you for your feedback!</string>
     <string name="very_satisfied">Very Satisfied</string>
     <string name="satisfied">Satisfied</string>
+    <string name="neutral">Neutral</string>
     <string name="unsatisfied">Unsatisfied</string>
     <string name="very_unsatisfied">Very Unsatisfied</string>
     <string name="view_logs">View Logs</string>
@@ -18,10 +19,11 @@
     <string name="delete_logs_confirmation">Are you sure you want to delete all survey logs? This action cannot be undone.</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
-    <string name="language">Language</string>
-    <string name="english">English</string>
-    <string name="japanese">Japanese</string>
+    <string name="please_select_user_type">Please select your group</string>
+    <string name="user_type_japanese">Japanese</string>
+    <string name="user_type_foreigner">Foreigner</string>
     <string name="weekly_responses">Weekly Responses (Last 7 Days)</string>
     <string name="no_data_available">No data available</string>
     <string name="total_responses_week">Total responses this week: %1$d</string>
+    <string name="back_button_description">Back to user type selection</string>
 </resources>

@@ -18,29 +18,22 @@ import com.example.local_survey.ui.theme.Green400
 import com.example.local_survey.ui.theme.LightGreen400
 import com.example.local_survey.ui.theme.Red400
 
-@Composable
-fun calculateSatisfactionData(context: Context, logEntries: List<String>): Map<String, Int> {
-    val verySatisfiedText = stringResource(R.string.very_satisfied)
-    val satisfiedText = stringResource(R.string.satisfied)
-    val unsatisfiedText = stringResource(R.string.unsatisfied)
-    val veryUnsatisfiedText = stringResource(R.string.very_unsatisfied)
+fun calculateSatisfactionDataByGroup(logEntries: List<String>): Map<String, Map<String, Int>> {
+    val groups = listOf("日本人", "Foreigner")
+    val ratings = listOf("大変満足", "満足", "普通", "不満", "大変不満")
 
-    val satisfactionCounts = mutableMapOf(
-        verySatisfiedText to 0,
-        satisfiedText to 0,
-        unsatisfiedText to 0,
-        veryUnsatisfiedText to 0
-    )
+    // Initialize the map with all groups and ratings
+    val satisfactionCounts = groups.associateWith {
+        ratings.associateWith { 0 }.toMutableMap()
+    }.toMutableMap()
 
     logEntries.forEach { entry ->
         val parts = entry.split(",")
-        if (parts.size > 1) {
-            val rating = parts[1].trim()
-            when (rating) {
-                verySatisfiedText -> satisfactionCounts[verySatisfiedText] = satisfactionCounts.getValue(verySatisfiedText) + 1
-                satisfiedText -> satisfactionCounts[satisfiedText] = satisfactionCounts.getValue(satisfiedText) + 1
-                unsatisfiedText -> satisfactionCounts[unsatisfiedText] = satisfactionCounts.getValue(unsatisfiedText) + 1
-                veryUnsatisfiedText -> satisfactionCounts[veryUnsatisfiedText] = satisfactionCounts.getValue(veryUnsatisfiedText) + 1
+        if (parts.size > 2) {
+            val group = parts[1].trim()
+            val rating = parts[2].trim()
+            if (satisfactionCounts.containsKey(group) && satisfactionCounts[group]!!.containsKey(rating)) {
+                satisfactionCounts[group]!![rating] = satisfactionCounts[group]!!.getValue(rating) + 1
             }
         }
     }
@@ -51,24 +44,36 @@ fun calculateSatisfactionData(context: Context, logEntries: List<String>): Map<S
 fun SatisfactionPieChart(data: Map<String, Int>) {
     val total = data.values.sum().toFloat()
     if (total == 0f) {
-        Text(stringResource(R.string.no_logs_found), modifier = Modifier.padding(16.dp))
+        Text(stringResource(R.string.no_data_available), modifier = Modifier.padding(16.dp))
         return
     }
 
-    val slices = data.map { (label, count) ->
+    val sortedData = data.entries.sortedBy { entry ->
+        when (entry.key) {
+            "大変満足" -> 0
+            "満足" -> 1
+            "普通" -> 2
+            "不満" -> 3
+            "大変不満" -> 4
+            else -> 5
+        }
+    }
+
+    val slices = sortedData.map { (label, count) ->
         PieSlice(label, count.toFloat() / total, count)
     }
 
     val colors = listOf(
-        Green400, // Green for Very Satisfied
-        LightGreen400, // Light Green for Satisfied
-        Amber400, // Amber for Unsatisfied
-        Red400  // Red for Very Unsatisfied
+        Green400,      // 大変満足
+        LightGreen400, // 満足
+        Color.Gray,    // 普通
+        Amber400,      // 不満
+        Red400         // 大変不満
     )
 
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(16.dp)) {
         Canvas(modifier = Modifier.size(200.dp)) {
-            var startAngle = 0f
+            var startAngle = -90f
             slices.forEachIndexed { index, slice ->
                 val sweepAngle = slice.percentage * 360f
                 drawArc(
