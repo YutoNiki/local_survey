@@ -200,7 +200,7 @@ fun SurveyScreen(navController: NavController) {
                 writeToCsv(context, userTypeSelected!!, ratingForLog)
                 buttonsEnabled = false
                 scope.launch {
-                    delay(3000)
+                    delay(2000)
                     userTypeSelected = null // Reset for next user
                     locale = context.resources.configuration.locales[0] // Reset locale
                     buttonsEnabled = true
