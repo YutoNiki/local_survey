@@ -4,6 +4,7 @@
     <string name="thank_you_feedback">ご意見ありがとうございます！</string>
     <string name="very_satisfied">大変満足</string>
     <string name="satisfied">満足</string>
+    <string name="neutral">普通</string>
     <string name="unsatisfied">不満</string>
     <string name="very_unsatisfied">大変不満</string>
     <string name="view_logs">ログを見る</string>
@@ -18,10 +19,11 @@
     <string name="delete_logs_confirmation">本当にすべてのログを削除しますか？この操作は元に戻せません。</string>
     <string name="yes">はい</string>
     <string name="no">いいえ</string>
-    <string name="language">言語</string>
-    <string name="english">英語</string>
-    <string name="japanese">日本語</string>
+    <string name="please_select_user_type">どちらか選択してください</string>
+    <string name="user_type_japanese">日本人</string>
+    <string name="user_type_foreigner">Foreigner</string>
     <string name="weekly_responses">週間回答数（過去7日間）</string>
     <string name="no_data_available">データがありません</string>
     <string name="total_responses_week">今週の合計回答数: %1$d</string>
+    <string name="back_button_description">ユーザー種別選択に戻る</string>
 </resources>

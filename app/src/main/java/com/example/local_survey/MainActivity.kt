@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Share
@@ -44,6 +45,8 @@ import androidx.compose.foundation.Image
 import android.content.res.Configuration
 
 
+import java.util.Locale
+
 // --- Navigation Routes ---
 object AppRoutes {
     const val SURVEY = "survey"
@@ -53,11 +56,7 @@ object AppRoutes {
 
 class MainActivity : ComponentActivity() {
 
-    override fun attachBaseContext(newBase: Context) {
-        val sharedPref = newBase.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-        val language = sharedPref.getString("app_language", "ja") ?: "ja"
-        super.attachBaseContext(ContextUtils.updateLocale(newBase, language))
-    }
+    
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -98,17 +97,18 @@ fun standardizeRating(rating: String): String {
     return when (rating.lowercase().trim()) {
         "very satisfied", "大変満足" -> "大変満足"
         "satisfied", "満足" -> "満足"
+        "neutral", "普通" -> "普通"
         "unsatisfied", "不満" -> "不満"
         "very unsatisfied", "大変不満" -> "大変不満"
         else -> rating // fallback to original if no match
     }
 }
 
-fun writeToCsv(context: Context, rating: String) {
+fun writeToCsv(context: Context, userType: String, rating: String) {
     val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
     val file = File(context.filesDir, LOG_FILE_NAME)
     val standardizedRating = standardizeRating(rating)
-    val line = "$timestamp,$standardizedRating\n"
+    val line = "$timestamp,$userType,$standardizedRating\n"
     try {
         file.appendText(line)
         Log.d("FileWrite", "Successfully wrote: $line")
@@ -174,117 +174,130 @@ fun shareCsv(context: Context) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SurveyScreen(navController: NavController) {
-    var buttonsEnabled by remember { mutableStateOf(true) }
-    var message by remember { mutableStateOf(R.string.how_was_experience) }
-    val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val activity = LocalActivity.current
+    var buttonsEnabled by remember { mutableStateOf(true) }
+    var userTypeSelected by remember { mutableStateOf<String?>(null) }
+    var locale by remember { mutableStateOf(context.resources.configuration.locales[0]) }
+    val scope = rememberCoroutineScope()
 
-    var expanded by remember { mutableStateOf(false) }
-    val languages = listOf("en", "ja")
-    val languageNames = mapOf("en" to stringResource(R.string.english), "ja" to stringResource(R.string.japanese))
-    val currentLanguage = remember { mutableStateOf(context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE).getString("app_language", "ja") ?: "ja") }
-    
-    // Pre-fetch rating strings
-    val verySatisfiedText = stringResource(R.string.very_satisfied)
-    val satisfiedText = stringResource(R.string.satisfied)
-    val unsatisfiedText = stringResource(R.string.unsatisfied)
-    val veryUnsatisfiedText = stringResource(R.string.very_unsatisfied)
-
-    val onButtonClick: (String) -> Unit = { rating ->
-        if (buttonsEnabled) {
-            writeToCsv(context, rating)
-            buttonsEnabled = false
-            message = R.string.thank_you_feedback
-            scope.launch {
-                delay(3000)
-                buttonsEnabled = true
-                message = R.string.how_was_experience
-            }
-        }
+    val localizedContext = remember(locale) {
+        val newConfig = android.content.res.Configuration(context.resources.configuration)
+        newConfig.setLocale(locale)
+        context.createConfigurationContext(newConfig)
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.app_name)) },
-                actions = {
-                    // Language Dropdown
-                    ExposedDropdownMenuBox(
-                        expanded = expanded,
-                        onExpandedChange = { expanded = !expanded },
-                        modifier = Modifier.wrapContentSize(Alignment.TopEnd)
-                    ) {
-                        TextField(
-                            value = languageNames[currentLanguage.value] ?: "",
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text(stringResource(R.string.language)) },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                            modifier = Modifier.menuAnchor()
-                        )
-                        ExposedDropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false }
-                        ) {
-                            languages.forEach { lang ->
-                                DropdownMenuItem(
-                                    text = { Text(languageNames[lang] ?: "") },
-                                    onClick = {
-                                        currentLanguage.value = lang
-                                        val sharedPref = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-                                        with(sharedPref.edit()) {
-                                            putString("app_language", lang)
-                                            apply()
-                                        }
-                                        activity?.recreate() // Recreate activity to apply language change
-                                        expanded = false
-                                    }
+    CompositionLocalProvider(LocalContext provides localizedContext) {
+        val messageText = if (userTypeSelected == null) {
+            stringResource(R.string.please_select_user_type)
+        } else if (!buttonsEnabled) {
+            stringResource(R.string.thank_you_feedback)
+        } else {
+            stringResource(R.string.how_was_experience)
+        }
+
+        val onRatingClick: (String) -> Unit = { ratingForLog ->
+            if (buttonsEnabled && userTypeSelected != null) {
+                writeToCsv(context, userTypeSelected!!, ratingForLog)
+                buttonsEnabled = false
+                scope.launch {
+                    delay(3000)
+                    userTypeSelected = null // Reset for next user
+                    locale = context.resources.configuration.locales[0] // Reset locale
+                    buttonsEnabled = true
+                }
+            }
+        }
+
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.app_name)) },
+                    navigationIcon = {
+                        if (userTypeSelected != null) { // Only show back button when a user type is selected
+                            IconButton(onClick = {
+                                userTypeSelected = null // Reset user type selection
+                                locale = context.resources.configuration.locales[0] // Reset locale to default
+                            }) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = stringResource(R.string.back_button_description)
                                 )
                             }
                         }
+                    },
+                    actions = {
+                        IconButton(onClick = { navController.navigate(AppRoutes.PASSWORD_PROTECTED_LOGS) }) {
+                            Icon(Icons.Filled.Menu, contentDescription = stringResource(R.string.view_logs))
+                        }
                     }
+                )
+            }
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = messageText,
+                    fontSize = 32.sp,
+                    modifier = Modifier.padding(bottom = 64.dp)
+                )
 
-                    IconButton(onClick = { navController.navigate(AppRoutes.PASSWORD_PROTECTED_LOGS) }) {
-                        Icon(Icons.Filled.Menu, contentDescription = stringResource(R.string.view_logs))
+                if (userTypeSelected == null) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Button(onClick = {
+                            userTypeSelected = "日本人"
+                            locale = Locale("ja")
+                        }, modifier = Modifier.width(200.dp).height(100.dp)) {
+                            Text(stringResource(R.string.user_type_japanese), fontSize = 24.sp)
+                        }
+                        Button(onClick = {
+                            userTypeSelected = "Foreigner"
+                            locale = Locale("en")
+                        }, modifier = Modifier.width(200.dp).height(100.dp)) {
+                            Text(stringResource(R.string.user_type_foreigner), fontSize = 24.sp)
+                        }
+                    }
+                } else {
+                    // Pre-fetch rating strings within the localized context
+                    val verySatisfiedText = stringResource(R.string.very_satisfied)
+                    val satisfiedText = stringResource(R.string.satisfied)
+                    val neutralText = stringResource(R.string.neutral)
+                    val unsatisfiedText = stringResource(R.string.unsatisfied)
+                    val veryUnsatisfiedText = stringResource(R.string.very_unsatisfied)
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        SurveyButton(text = "😊", rating = verySatisfiedText, ratingForLog = "大変満足", enabled = buttonsEnabled, onClick = onRatingClick)
+                        SurveyButton(text = "🙂", rating = satisfiedText, ratingForLog = "満足", enabled = buttonsEnabled, onClick = onRatingClick)
+                        SurveyButton(text = "😐", rating = neutralText, ratingForLog = "普通", enabled = buttonsEnabled, onClick = onRatingClick)
+                        SurveyButton(text = "😕", rating = unsatisfiedText, ratingForLog = "不満", enabled = buttonsEnabled, onClick = onRatingClick)
+                        SurveyButton(text = "😠", rating = veryUnsatisfiedText, ratingForLog = "大変不満", enabled = buttonsEnabled, onClick = onRatingClick)
                     }
                 }
-            )
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = stringResource(message),
-                fontSize = 32.sp,
-                modifier = Modifier.padding(bottom = 64.dp)
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                SurveyButton(text = "😊", rating = verySatisfiedText, enabled = buttonsEnabled, onClick = onButtonClick)
-                SurveyButton(text = "🙂", rating = satisfiedText, enabled = buttonsEnabled, onClick = onButtonClick)
-                SurveyButton(text = "😐", rating = unsatisfiedText, enabled = buttonsEnabled, onClick = onButtonClick)
-                SurveyButton(text = "😠", rating = veryUnsatisfiedText, enabled = buttonsEnabled, onClick = onButtonClick)
+
+                // Banner Image
+                Spacer(modifier = Modifier.height(32.dp))
+                Image(
+                    painter = painterResource(id = R.drawable.opma_banner),
+                    contentDescription = "OPMA Banner",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp)
+                        .align(Alignment.CenterHorizontally)
+                )
             }
-            // Banner Image
-            Spacer(modifier = Modifier.height(32.dp)) // Adjust spacing as needed
-            Image(
-                painter = painterResource(id = R.drawable.opma_banner),
-                contentDescription = "OPMA Banner",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp) // Adjust height as needed
-                    .align(Alignment.CenterHorizontally)
-            )
         }
     }
 }
@@ -347,9 +360,9 @@ fun PasswordScreen(navController: NavController) {
 // --- Reusable Components & Previews ---
 
 @Composable
-fun SurveyButton(text: String, rating: String, enabled: Boolean, onClick: (String) -> Unit) {
+fun SurveyButton(text: String, rating: String, ratingForLog: String, enabled: Boolean, onClick: (String) -> Unit) {
     Surface(
-        onClick = { onClick(rating) },
+        onClick = { onClick(ratingForLog) },
         enabled = enabled,
         shape = MaterialTheme.shapes.small,
         color = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest,

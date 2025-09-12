@@ -1,10 +1,6 @@
 package com.example.local_survey.ui.screens
 
-import android.content.Context
-import android.widget.Toast
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -24,8 +20,8 @@ import com.example.local_survey.deleteCsv
 import com.example.local_survey.readCsv
 import com.example.local_survey.shareCsv
 import com.example.local_survey.ui.components.SatisfactionPieChart
-import com.example.local_survey.ui.components.calculateSatisfactionData
 import com.example.local_survey.ui.components.WeeklyResponseBarChart
+import com.example.local_survey.ui.components.calculateSatisfactionDataByGroup
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,7 +29,7 @@ fun LogScreen(navController: NavController) {
     val context = LocalContext.current
     var logEntries by remember { mutableStateOf(readCsv(context)) }
     var showDeleteDialog by remember { mutableStateOf(false) }
-    
+
     // Pre-fetch dialog strings
     val deleteLogsConfirmationText = stringResource(R.string.delete_logs_confirmation)
     val yesText = stringResource(R.string.yes)
@@ -69,8 +65,10 @@ fun LogScreen(navController: NavController) {
                 Text(stringResource(R.string.no_logs_found))
             }
         } else {
-            val satisfactionData = calculateSatisfactionData(context, logEntries)
-            
+            val satisfactionDataByGroup = calculateSatisfactionDataByGroup(logEntries)
+            val japaneseData = satisfactionDataByGroup["日本人"] ?: emptyMap()
+            val foreignerData = satisfactionDataByGroup["Foreigner"] ?: emptyMap()
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -82,14 +80,32 @@ fun LogScreen(navController: NavController) {
                     logEntries = logEntries,
                     modifier = Modifier.fillMaxWidth()
                 )
-                
+
                 HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-                
-                // Satisfaction pie chart
-                SatisfactionPieChart(data = satisfactionData)
-                
+
+                // Satisfaction pie charts by group
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(text = "日本人", style = MaterialTheme.typography.headlineSmall)
+                        SatisfactionPieChart(data = japaneseData)
+                    }
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(text = "Foreigner", style = MaterialTheme.typography.headlineSmall)
+                        SatisfactionPieChart(data = foreignerData)
+                    }
+                }
+
                 HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-                
+
                 // Raw log entries
                 Column(
                     modifier = Modifier.padding(horizontal = 16.dp)
@@ -99,7 +115,7 @@ fun LogScreen(navController: NavController) {
                         style = MaterialTheme.typography.headlineSmall,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
-                    
+
                     logEntries.forEach { entry ->
                         Text(
                             text = entry,
