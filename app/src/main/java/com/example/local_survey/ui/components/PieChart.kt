@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -42,11 +43,13 @@ fun calculateSatisfactionDataByGroup(logEntries: List<String>): Map<String, Map<
 
 @Composable
 fun SatisfactionPieChart(data: Map<String, Int>) {
-    val total = data.values.sum().toFloat()
-    if (total == 0f) {
+    val total = data.values.sum()
+    if (total == 0) {
         Text(stringResource(R.string.no_data_available), modifier = Modifier.padding(16.dp))
         return
     }
+
+    val totalFloat = total.toFloat()
 
     val sortedData = data.entries.sortedBy { entry ->
         when (entry.key) {
@@ -60,7 +63,7 @@ fun SatisfactionPieChart(data: Map<String, Int>) {
     }
 
     val slices = sortedData.map { (label, count) ->
-        PieSlice(label, count.toFloat() / total, count)
+        PieSlice(label, count.toFloat() / totalFloat, count)
     }
 
     val colors = listOf(
@@ -72,6 +75,11 @@ fun SatisfactionPieChart(data: Map<String, Int>) {
     )
 
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(16.dp)) {
+        Text(
+            text = stringResource(R.string.total_respondents, total),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
         Canvas(modifier = Modifier.size(200.dp)) {
             var startAngle = -90f
             slices.forEachIndexed { index, slice ->

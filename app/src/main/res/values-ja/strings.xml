@@ -26,4 +26,5 @@
     <string name="no_data_available">データがありません</string>
     <string name="total_responses_week">今週の合計回答数: %1$d</string>
     <string name="back_button_description">ユーザー種別選択に戻る</string>
+    <string name="total_respondents">合計: %1$d人</string>
 </resources>

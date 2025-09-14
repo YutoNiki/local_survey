@@ -26,4 +26,5 @@
     <string name="no_data_available">No data available</string>
     <string name="total_responses_week">Total responses this week: %1$d</string>
     <string name="back_button_description">Back to user type selection</string>
+    <string name="total_respondents">Total: %1$d</string>
 </resources>

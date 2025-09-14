@@ -6,46 +6,54 @@
 
 ## 主な特徴
 
-- **4段階の満足度評価**：
+- **ユーザー種別選択**:
+    - 回答の前に「日本人」または「Foreigner」を選択します。
+- **動的な多言語対応**:
+    - ユーザー種別で「日本人」を選択するとUIが日本語に、「Foreigner」を選択すると英語に自動で切り替わります。
+- **5段階の満足度評価**:
     - 😊 大変満足
     - 🙂 満足
-    - 😐 不満
+    - 😐 普通
+    - 😕 不満
     - 😠 大変不満
-- **ワンタップで記録**：ボタンを押すだけで即時に記録。
-- **クールダウン機能**：連打や誤操作防止のため、5秒間ボタンが無効化されます。
-- **多言語対応**：日本語・英語の両方に対応。UIは端末の言語設定に自動で切り替わります。
-- **データは常に日本語で記録**：どちらの言語モードでも、ログ（CSV）は日本語で統一されます。
-- **オフライン動作**：インターネット接続不要。
-- **ログ閲覧・削除・共有**：アプリ内で記録一覧の閲覧・削除・CSVファイルの共有が可能。
-- **グラフ表示**：
-    - 直近1週間の日別回答数を棒グラフで可視化
-    - 満足度分布を円グラフで表示
-- **バナー画像表示**：画面下部にカスタムバナーを表示可能
+- **ワンタップで記録**: ボタンを押すだけで即時に記録。
+- **クールダウン機能**: 回答後、数秒間は次の操作ができなくなり、自動で最初のユーザー選択画面に戻ります。
+- **評価データは日本語で記録**: UI言語に関わらず、ログ（CSV）に残る評価は「大変満足」「満足」などの日本語テキストで統一されます。
+- **オフライン動作**: インターネット接続不要。
+- **パスワード保護されたログ**: 右上のメニューからパスワード（`1988`）を入力することで、ログ画面にアクセスできます。
+- **ログ閲覧・削除・共有**: アプリ内で記録一覧の閲覧、全削除、CSVファイルの共有が可能です。
+- **グラフによる可視化**:
+    - **週間回答数**: 直近1週間の日別回答数を棒グラフで表示します。
+    - **満足度分布**: 「日本人」「Foreigner」それぞれの満足度を円グラフで表示します。各グラフにはグループの合計人数も表示されます。
+- **バナー画像表示**: 画面下部に常にバナー画像を表示します。
 
 ## 画面イメージ
 
-- **アンケート画面**：4つの絵文字ボタン＋バナー画像
-- **ログ画面**：
-    - 直近1週間の棒グラフ
-    - 満足度分布の円グラフ
-    - 生ログ一覧
-    - ログの共有・削除ボタン
+- **ユーザー種別選択画面**: 「日本人」「Foreigner」の選択ボタン。
+- **アンケート画面**: 5つの絵文字ボタン＋バナー画像。
+- **ログ画面**:
+    - 週間回答数の棒グラフ。
+    - 「日本人」「Foreigner」別の円グラフ（合計人数付き）。
+    - 生ログ一覧。
+    - ログの共有・削除ボタン。
 
 ## 使い方
 
-1. アプリを起動し、絵文字ボタンをタップして満足度を記録。
-2. 「ありがとう」メッセージが表示され、5秒後に再度入力可能。
-3. ログ閲覧は右上のメニュー（三本線）からパスワード入力でアクセス。
-4. ログ画面で棒グラフ・円グラフ・生ログを確認。
-5. 右上の共有ボタンでCSVを他アプリへ送信可能。
+1. アプリを起動し、「日本人」または「Foreigner」を選択します。
+2. 選択した言語でアンケート画面が表示されたら、絵文字ボタンをタップして満足度を記録します。
+3. 「ご意見ありがとうございます！」というメッセージが表示され、数秒後に自動で最初の選択画面に戻ります。
+4. ログを閲覧するには、画面右上のメニューアイコンをタップし、パスワード（`1988`）を入力します。
+5. ログ画面でグラフや生ログを確認できます。
+6. ログ画面右上のボタンから、全ログの削除やCSVファイルのエクスポートができます。
 
 ## データ仕様
 
-- **保存先**：アプリ内ストレージ `survey_log.csv`
-- **CSVフォーマット**：
-  `yyyy-MM-dd HH:mm:ss,大変満足` のように、日時と評価（日本語）で記録
-- **例**：
-  `2025-08-18 10:30:00,大変満足`
+- **保存先**: アプリ内ストレージ `survey_log.csv`
+- **CSVフォーマット**:
+  `yyyy-MM-dd HH:mm:ss,ユーザー種別,評価` のように、日時・ユーザー種別・評価（日本語）で記録されます。
+- **例**:
+  `2025-09-14 10:30:00,日本人,大変満足`
+  `2025-09-14 10:31:15,Foreigner,満足`
 
 ## ビルド方法
 
@@ -62,9 +70,13 @@
 3. 実機またはエミュレータを接続
 4. ビルド＆実行
 
-コマンドラインからビルドする場合：
+コマンドラインからビルド・インストールする場合：
 ```bash
 ./gradlew installDebug
+```
+デバッグ用APKファイルを生成する場合：
+```bash
+./gradlew assembleDebug
 ```
 
 ## ライセンス
@@ -75,4 +87,16 @@ MIT License
 
 ### English Summary
 
-This is a simple offline survey app for Android tablets. It supports both Japanese and English UI, but all logs are always recorded in Japanese for consistency. The app features a 4-level satisfaction rating, cooldown to prevent spamming, in-app log viewer, CSV export, and visualizes recent responses with bar and pie charts.
+This is a simple offline survey app for Android tablets.
+
+**Features**:
+- **User Type Selection**: Users first select "Japanese" or "Foreigner".
+- **Dynamic UI Language**: The UI switches to Japanese or English based on the user type selection.
+- **5-Level Satisfaction Rating**: Users can record their satisfaction level with a single tap.
+- **Cooldown & Auto-Reset**: After providing feedback, the screen resets to the initial user selection screen.
+- **Consistent Logging**: The rating value in the log file (CSV) is always recorded in Japanese for data consistency, regardless of the UI language.
+- **Offline Functionality**: No internet connection required.
+- **Password-Protected Logs**: Log screen is accessible via a password (`1988`).
+- **Log Management**: View, delete, and share logs as a CSV file from within the app.
+- **Data Visualization**: The log screen displays a bar chart for weekly responses and separate pie charts for "Japanese" and "Foreigner" satisfaction rates, including the total count for each group.
+- **CSV Format**: `yyyy-MM-dd HH:mm:ss,UserType,RatingInJapanese`
