@@ -22,7 +22,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -41,7 +40,6 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.activity.compose.LocalActivity
-import androidx.compose.foundation.Image
 import android.content.res.Configuration
 
 
@@ -223,6 +221,9 @@ fun SurveyScreen(navController: NavController) {
                                     contentDescription = stringResource(R.string.back_button_description)
                                 )
                             }
+                        } else {
+                            // Empty spacer to prevent invisible clickable area
+                            Spacer(modifier = Modifier.size(0.dp))
                         }
                     },
                     actions = {
@@ -287,15 +288,17 @@ fun SurveyScreen(navController: NavController) {
                     }
                 }
 
-                // Banner Image
+                // Banner Text
                 Spacer(modifier = Modifier.height(32.dp))
-                Image(
-                    painter = painterResource(id = R.drawable.opma_banner),
-                    contentDescription = "OPMA Banner",
+                Text(
+                    text = "岡山県立美術館",
+                    style = MaterialTheme.typography.headlineLarge,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(100.dp)
                         .align(Alignment.CenterHorizontally)
+                        .padding(horizontal = 16.dp),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
         }
