@@ -18,7 +18,7 @@
 - **クールダウン機能**: 回答後、数秒間は次の操作ができなくなり、自動で最初のユーザー選択画面に戻ります。
 - **評価データは日本語で記録**: UI言語に関わらず、ログ（CSV）に残る評価は「大変満足」「満足」などの日本語テキストで統一されます。
 - **オフライン動作**: インターネット接続不要。
-- **パスワード保護されたログ**: 右上のメニューからパスワード（`1988`）を入力することで、ログ画面にアクセスできます。
+- **パスワード保護されたログ**: 右上のメニューからパスワード（`****`）を入力することで、ログ画面にアクセスできます。
 - **ログ閲覧・削除・共有**: アプリ内で記録一覧の閲覧、全削除、CSVファイルの共有が可能です。
 - **グラフによる可視化**:
     - **週間回答数**: 直近1週間の日別回答数を棒グラフで表示します。
@@ -94,7 +94,7 @@ This is a simple offline survey app for Android tablets.
 - **Cooldown & Auto-Reset**: After providing feedback, the screen resets to the initial user selection screen.
 - **Consistent Logging**: The rating value in the log file (CSV) is always recorded in Japanese for data consistency, regardless of the UI language.
 - **Offline Functionality**: No internet connection required.
-- **Password-Protected Logs**: Log screen is accessible via a password (`1988`).
+- **Password-Protected Logs**: Log screen is accessible via a password (`****`).
 - **Log Management**: View, delete, and share logs as a CSV file from within the app.
 - **Data Visualization**: The log screen displays a bar chart for weekly responses and separate pie charts for "Japanese" and "Foreigner" satisfaction rates, including the total count for each group.
 - **CSV Format**: `yyyy-MM-dd HH:mm:ss,UserType,RatingInJapanese`
